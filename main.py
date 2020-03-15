@@ -1,5 +1,7 @@
 import io
 import os
+import re
+
 
 # Imports the Google Cloud client library
 from google.cloud import vision
@@ -16,7 +18,38 @@ def search_price(candidate):
         for j in candidate:
             for k in candidate:
                 if i+j == k:
-                    return k
+                    if i>j:
+                        return [i,j,k]
+                    else:
+                        return [j,i,k]
+
+def search_card_number(i):
+    
+    if '-' in i:
+        if '*' in i:
+            j = i.replace('*','')
+            j = j.replace('-','')
+
+            try : 
+                int(j)
+                return i
+            
+            except:
+                return False
+
+    return False
+
+def search_date(candidate):
+    regex = re.compile(r'^\d{2}/\d{2}/\d{2}')
+    matchobj = regex.search(candidate)
+    
+    if matchobj ==[]:
+        return False
+    else :
+        try :
+            return matchobj.group(0)
+        except:
+            return False
 
 def detect_text(path):
         """Detects text in the file."""
@@ -30,6 +63,8 @@ def detect_text(path):
         image = vision.types.Image(content=content)
 
         price_candidate = []
+        card_number_candidate = []
+        date_candidate = []
 
         response = client.text_detection(image=image)
         texts = response.text_annotations
@@ -42,9 +77,19 @@ def detect_text(path):
             
             if is_integer(content):
                 price_candidate.append(int(content))
-        
-        print(price_candidate)
+                
+            if search_card_number(content):
+                card_number_candidate.append(content)
+
+            if search_date(content):
+                date_candidate.append(content)
+
+    
         print(search_price(price_candidate))
+        print(card_number_candidate)
+        print(date_candidate)
+    
+
 
 
         if response.error.message:
