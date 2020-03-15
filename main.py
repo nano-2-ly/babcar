@@ -4,6 +4,19 @@ import os
 # Imports the Google Cloud client library
 from google.cloud import vision
 from google.cloud.vision import types
+def is_integer(content):
+    try : 
+        int(content)
+        return True
+    except :
+        return False
+
+def search_price(candidate):
+    for i in candidate:
+        for j in candidate:
+            for k in candidate:
+                if i+j == k:
+                    return k
 
 def detect_text(path):
         """Detects text in the file."""
@@ -16,17 +29,23 @@ def detect_text(path):
 
         image = vision.types.Image(content=content)
 
+        price_candidate = []
+
         response = client.text_detection(image=image)
         texts = response.text_annotations
         print('Texts:')
 
         for text in texts:
-            print('\n"{}"'.format(text.description))
+            content = text.description
+            content = content.replace(',','')
+            print('\n"{}"'.format(content))
+            
+            if is_integer(content):
+                price_candidate.append(int(content))
+        
+        print(price_candidate)
+        print(search_price(price_candidate))
 
-            vertices = (['({},{})'.format(vertex.x, vertex.y)
-                        for vertex in text.bounding_poly.vertices])
-
-            print('bounds: {}'.format(','.join(vertices)))
 
         if response.error.message:
             raise Exception(
